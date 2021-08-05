@@ -84,12 +84,14 @@ int H_TO_D(string s)
   str >> hex >> x;
   return x;
 }
+
 string D_TO_H(int number)
 {
   stringstream str;
   str << hex << number;
   return str.str();
 }
+
 string add(string str, string adder)
 {
   int num1 = H_TO_D(str);
@@ -97,16 +99,7 @@ string add(string str, string adder)
   int sum = num1 + num2;
   return D_TO_H(sum);
 }
-string sub(string str, string adder)
-{
-  int num1 = H_TO_D(str);
-  int num2 = H_TO_D(adder);
-  int sum = num1 - num2;
-  if (sum >= 0)
-    return D_TO_H(sum);
-  else
-    return str;
-}
+
 string fill(string s)
 {
   int sz = s.size();
@@ -123,28 +116,6 @@ string fill(string s)
     ;
   }
   return s;
-}
-
-string getTypeOfByte(string s)
-{
-  string ans = "";
-  if (s[0] == 'X')
-  {
-    int sz = s.size();
-    sz -= 3; // X'05' -> X''
-    if (sz & 1)
-      sz++;
-    sz = sz / 2;
-    ans = D_TO_H(sz);
-    return fill(ans);
-  }
-  else
-  {
-    int sz = s.size();
-    sz -= 3; // C'05' -> C''
-    ans = D_TO_H(sz);
-    return fill(ans);
-  }
 }
 
 string get_format(string instruction, string s)
@@ -280,7 +251,6 @@ int main()
   }
 
   //for (auto it : Code)cout << get<0>(it) << " " << get<1>(it) << " " << get<2>(it) << endl;
-
 
   /*Location Address and Sample Table*/
   vector<pair<string, string>> locationAddress;
