@@ -8,6 +8,9 @@ using namespace std;
  *
 **/
 
+int Base = 0;
+string B = "";
+
 string opTab(string mnem)
 {
   map<string, string> r;
@@ -76,6 +79,79 @@ string opTab(string mnem)
   return opcode;
 }
 
+int Format(string mnem)
+{
+  map<string, int> r;
+  r["ADD"] = 3;
+  r["ADDF"] = 3;
+  r["ADDR"] = 2;
+  r["AND"] = 3;
+  r["CLEAR"] = 2;
+  r["COMP"] = 3;
+  r["COMPF"] = 3;
+  r["COMPR"] = 2;
+  r["DIV"] = 3;
+  r["DIVF"] = 3;
+  r["DIVR"] = 2;
+  r["FIX"] = 1;
+  r["FLOAT"] = 1;
+  r["HIO"] = 1;
+  r["J"] = 3;
+  r["JEQ"] = 3;
+  r["JGT"] = 3;
+  r["JLT"] = 3;
+  r["JSUB"] = 3;
+  r["LDA"] = 3;
+  r["LDB"] = 3;
+  r["LDCH"] = 3;
+  r["LDF"] = 3;
+  r["LDL"] = 3;
+  r["LDS"] = 3;
+  r["LDT"] = 3;
+  r["LDX"] = 3;
+  r["LPS"] = 3;
+  r["MUL"] = 3;
+  r["MULF"] = 3;
+  r["MULR"] = 2;
+  r["NORM"] = 1;
+  r["OR"] = 3;
+  r["RD"] = 3;
+  r["RMO"] = 2;
+  r["RSUB"] = 3;
+  r["SHIFTL"] = 2;
+  r["SHIFTR"] = 2;
+  r["SIO"] = 1;
+  r["SSK"] = 3;
+  r["STA"] = 3;
+  r["STB"] = 3;
+  r["STCH"] = 3;
+  r["STF"] = 3;
+  r["STI"] = 3;
+  r["STL"] = 3;
+  r["STS"] = 3;
+  r["STSW"] = 3;
+  r["STT"] = 3;
+  r["STX"] = 3;
+  r["SUB"] = 3;
+  r["SUBF"] = 3;
+  r["SUBR"] = 2;
+  r["SVC"] = 2;
+  r["TD"] = 3;
+  r["TIO"] = 1;
+  r["TIX"] = 3;
+  r["TIXR"] = 2;
+  r["WD"] = 3;
+
+  bool f = false;
+  for (auto it : r)
+    if (it.first == mnem)
+      f = true;
+
+  int format;
+  format = f ? r[mnem] : -1;
+  return format;
+}
+
 int H_TO_D(string s)
 {
   int x;
@@ -92,11 +168,102 @@ string D_TO_H(int number)
   return str.str();
 }
 
+string HexToBin(string hex)
+{
+  int i = 0;
+  while (hex[i])
+  {
+    switch (hex[i])
+    {
+    case '0':
+      return "0000";
+      break;
+    case '1':
+      return "0001";
+      break;
+    case '2':
+      return "0010";
+      break;
+    case '3':
+      return "0011";
+      break;
+    case '4':
+      return "0100";
+      break;
+    case '5':
+      return "0101";
+      break;
+    case '6':
+      return "0110";
+      break;
+    case '7':
+      return "0111";
+      break;
+    case '8':
+      return "1000";
+      break;
+    case '9':
+      return "1001";
+      break;
+    case 'A':
+    case 'a':
+      return "1010";
+      break;
+    case 'B':
+    case 'b':
+      return "1011";
+      break;
+    case 'C':
+    case 'c':
+      return "1100";
+      break;
+    case 'D':
+    case 'd':
+      return "1101";
+      break;
+    case 'E':
+    case 'e':
+      return "1110";
+      break;
+    case 'F':
+    case 'f':
+      return "1111";
+      break;
+    default:
+      return "-1";
+    }
+    i++;
+  }
+  return "-1";
+}
+
+string string_to_hex(string input)
+{
+  static const char hex_digits[] = "0123456789ABCDEF";
+
+  std::string output;
+  output.reserve(input.length() * 2);
+  for (unsigned char c : input)
+  {
+    output.push_back(hex_digits[c >> 4]);
+    output.push_back(hex_digits[c & 15]);
+  }
+  return output;
+}
+
 string add(string str, string adder)
 {
   int num1 = H_TO_D(str);
   int num2 = H_TO_D(adder);
   int sum = num1 + num2;
+  return D_TO_H(sum);
+}
+
+string sub(string str, string adder)
+{
+  int num1 = H_TO_D(str);
+  int num2 = H_TO_D(adder);
+  int sum = num1 - num2;
   return D_TO_H(sum);
 }
 
@@ -196,12 +363,107 @@ string get_format(string instruction, string s)
   }
 }
 
+bool ifIndexed(string s)
+{
+  int n = s.size();
+  return s[n - 2] == ',' ? true : false;
+}
+
+bool ifImmediate(string s) // #
+{
+  return s[0] == '#' ? true : false;
+}
+
+bool ifIndirect(string s) // @
+{
+  return s[0] == '@' ? true : false;
+}
+
+bool isNumber(string s)
+{
+  bool num = true;
+  for (auto it : s)
+    if (!isdigit(it))
+      num = false;
+  return num ? true : false;
+}
+
+string getNumberOfRegister(char reg)
+{
+  if (reg == 'A')
+    return "0";
+  if (reg == 'X')
+    return "1";
+  if (reg == 'L')
+    return "2";
+  if (reg == 'B')
+    return "3";
+  if (reg == 'S')
+    return "4";
+  if (reg == 'T')
+    return "5";
+  if (reg == 'F')
+    return "6";
+  return "-1";
+}
+
+string Setnixbpe(string mnem, string ref, string nixbpe)
+{
+  //string nixbpe = "000000";
+  if (mnem[0] == '+')
+  {
+    //set nixbpe
+    nixbpe[5] = '1';
+    if (ifImmediate(ref))
+      nixbpe[1] = '1';
+    else if (ifIndirect(ref))
+      nixbpe[0] = '1';
+    else
+      nixbpe[0] = '1', nixbpe[1] = '1';
+    if (ifIndexed(ref))
+      nixbpe[2] = '1';
+    return nixbpe;
+  }
+  else
+  {
+    if (ifImmediate(ref))
+      nixbpe[1] = '1';
+    else if (ifIndirect(ref))
+      nixbpe[0] = '1';
+    else
+      nixbpe[0] = '1', nixbpe[1] = '1';
+    if (ifIndexed(ref))
+      nixbpe[2] = '1';
+    return nixbpe;
+  }
+}
+
+string getFirstPartOb(string nixbpe, string ins, string opCode)
+{
+  string objectCode = "", temp = "", opCode_1 = "";
+  objectCode = opCode[0];
+  opCode_1 = opCode[1];
+  //cout << opCode_1 << endl;
+  temp = HexToBin(opCode_1);
+  temp.pop_back(), temp.pop_back();
+  temp += nixbpe[0], temp += nixbpe[1];
+  //cout << temp << endl;
+  int tempNum = stoi(temp, 0, 2);
+  objectCode += D_TO_H(tempNum);
+  temp = "";
+  temp += nixbpe[2], temp += nixbpe[3], temp += nixbpe[4], temp += nixbpe[5];
+  tempNum = stoi(temp, 0, 2);
+  objectCode += D_TO_H(tempNum);
+  return objectCode;
+}
+
 int main()
 {
   /*Read From File*/
   ifstream myFile("inSICXE.txt");
   string data, wd;
   vector<tuple<string, string, string>> Code;
+  deque<int> Base_indices;
   if (myFile.is_open())
   {
     while (getline(myFile, data))
@@ -254,6 +516,8 @@ int main()
 
   /*Location Address and Sample Table*/
   vector<pair<string, string>> locationAddress;
+  map<string, string> MapLocationAddress;
+
   unordered_map<string, string> sampleTable;
   vector<pair<string, string>> sampleTableV;
   string startAddress = get<2>(Code[0]);
@@ -276,6 +540,8 @@ int main()
     //cout << a << " " << b << " " << inc << endl;
     if (inc == "BASE")
     {
+      Base = i;
+      B = get<2>(Code[i]);
       continue;
     }
     //cout << a << " " << b << " " << inc << endl;
@@ -294,4 +560,187 @@ int main()
   }
 
   //for (auto it : sampleTableV)cout << it.first << " " << it.second << endl;
+
+  /*Object Code*/
+
+  vector<tuple<string, string, string>> locInstRef, O;
+  vector<pair<string, string>> objectCode;
+
+  int pc = 0;
+
+  for (int i = 0; i < Code.size(); i++)
+  {
+    locInstRef.push_back(make_tuple(locationAddress[i].first, get<1>(Code[i]), get<2>(Code[i])));
+  }
+
+  //for (auto it : insRef) cout << it.first << " " << it.second << endl;
+
+  for (int it = 0; it < locInstRef.size(); it++)
+  {
+    string ins = "", nixbpe = "000000", ObCode = "";
+    for (auto i : get<1>(locInstRef[it]))
+      if (i != '+')
+        ins += i;
+    nixbpe = Setnixbpe(get<1>(locInstRef[it]), get<2>(locInstRef[it]), nixbpe);
+    if (get<1>(locInstRef[it])[0] == '+')
+    {
+      string without = "";
+      for (auto it : get<2>(locInstRef[it]))
+      {
+        if (it != '@' && it != '#')
+          without += it;
+      }
+      ObCode += getFirstPartOb(nixbpe, ins, opTab(ins));
+      if (isNumber(without))
+      {
+        string value = D_TO_H(stoi(without));
+        int sz = value.size();
+        sz = 5 - sz;
+        while (sz--)
+        {
+          value = '0' + value;
+        }
+        ObCode += value;
+      }
+      else
+      {
+        string value = sampleTable[without];
+        int sz = value.size();
+        sz = 5 - sz;
+        while (sz--)
+        {
+          value = '0' + value;
+        }
+        ObCode += value;
+      }
+
+      //objectCode.push_back(make_pair(get<1>(locInstRef[it]), ObCode));
+      O.push_back({get<0>(locInstRef[it]), get<1>(locInstRef[it]), ObCode});
+    }
+    else
+    {
+      if (Format(get<1>(locInstRef[it])) == -1)
+      {
+        if (get<1>(locInstRef[it]) == "RESW" || get<1>(locInstRef[it]) == "RESB")
+        {
+          ObCode = "no object code";
+          //objectCode.push_back(make_pair(get<1>(locInstRef[it]), ObCode));
+          O.push_back({get<0>(locInstRef[it]), get<1>(locInstRef[it]), ObCode});
+        }
+        else if (get<1>(locInstRef[it]) == "BYTE")
+        {
+          if (get<2>(locInstRef[it])[0] == 'X')
+          {
+            for (int i = 2; i < get<2>(locInstRef[it]).size() - 1; i++)
+              ObCode += get<2>(locInstRef[it])[i];
+            objectCode.push_back(make_pair(get<1>(locInstRef[it]), ObCode));
+            O.push_back({get<0>(locInstRef[it]), get<1>(locInstRef[it]), ObCode});
+          }
+          else
+          {
+
+            for (int i = 2; i < get<2>(locInstRef[it]).size() - 1; i++)
+            {
+              string ascii = "";
+              ascii += get<2>(locInstRef[it])[i];
+              ObCode += string_to_hex(ascii);
+            }
+            //objectCode.push_back(make_pair(get<1>(locInstRef[it]), ObCode));
+            O.push_back({get<0>(locInstRef[it]), get<1>(locInstRef[it]), ObCode});
+          }
+        }
+      }
+      else if (Format(get<1>(locInstRef[it])) == 2)
+      {
+        ObCode += opTab(get<1>(locInstRef[it]));
+        for (auto it : get<2>(locInstRef[it]))
+        {
+          if (it != ',')
+            ObCode += getNumberOfRegister(it);
+        }
+        int sz = ObCode.size();
+        sz = 4 - sz;
+        while (sz--)
+          ObCode += '0';
+        //objectCode.push_back(make_pair(get<1>(locInstRef[it]), ObCode));
+        O.push_back({get<0>(locInstRef[it]), get<1>(locInstRef[it]), ObCode});
+      }
+      else if (Format(get<1>(locInstRef[it])) == 1)
+      {
+        // later on
+        ;
+      }
+      else
+      {
+        string without = "";
+        for (auto it : get<2>(locInstRef[it]))
+        {
+          if (it != '@' && it != '#' && it != ',')
+            without += it;
+          if (it == ',')
+            break;
+        }
+
+        ObCode += getFirstPartOb(nixbpe, ins, opTab(ins));
+        if (isNumber(without))
+        {
+          ObCode.pop_back();
+          int sz = 4 - without.size();
+          while (sz--)
+          {
+            without = '0' + without;
+          }
+          ObCode += without;
+          //objectCode.push_back(make_pair(get<1>(locInstRef[it]), ObCode));
+          O.push_back({get<0>(locInstRef[it]), get<1>(locInstRef[it]), ObCode});
+        }
+        else
+        {
+          ObCode = "";
+          string TA = "", PC = "", disp = "";
+          TA = sampleTable[without];
+          PC = (it > Base ? get<0>(locInstRef[it]) : get<0>(locInstRef[it + 1]));
+
+          long long ta = H_TO_D(TA);
+          long long pc = H_TO_D(PC);
+          long long dis = ta - pc;
+
+          if (dis >= -2048 && dis <= 2047)
+          {
+            disp = D_TO_H(dis);
+            nixbpe[4] = '1';
+            nixbpe = Setnixbpe(get<1>(locInstRef[it]), get<2>(locInstRef[it]), nixbpe);
+          }
+          else
+          {
+            disp = sub(TA, sampleTable[B]);
+            nixbpe[3] = '1';
+            nixbpe = Setnixbpe(get<1>(locInstRef[it]), get<2>(locInstRef[it]), nixbpe);
+          }
+
+          ObCode += getFirstPartOb(nixbpe, ins, opTab(ins));
+          int SZ = 3 - disp.size();
+          if (3 > disp.size())
+            while (SZ--)
+              disp = '0' + disp;
+          if (disp[0] == disp[1] && disp[1] == 'f')
+          {
+            string temp = "";
+            temp = disp[disp.size() - 1] + temp;
+            temp = disp[disp.size() - 2] + temp;
+            temp = disp[disp.size() - 3] + temp;
+            disp = temp;
+          }
+          ObCode += disp;
+          //objectCode.push_back(make_pair(get<1>(locInstRef[it]), ObCode));
+          O.push_back({get<0>(locInstRef[it]), get<1>(locInstRef[it]), ObCode});
+        }
+      }
+    }
+  }
+
+  //for (auto it : objectCode){cout << it.first << " " << it.second << endl;}
+  //for (auto it : O) cout << get<0>(it) << " " << get<1>(it) << " " << get<2>(it) << endl;
+
+  // under construction...
 }
