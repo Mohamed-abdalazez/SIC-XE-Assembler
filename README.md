@@ -14,3 +14,9 @@
 - Sample Table
 
 ![Read](https://i.postimg.cc/X7Zw8G0V/3.png)
+
+- Object Code
+
+![Read](https://i.postimg.cc/7PMyG747/object-code.png)
+
+
