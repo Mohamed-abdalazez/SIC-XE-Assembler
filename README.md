@@ -17,6 +17,10 @@
 
 - Object Code
 
-![Read](https://i.postimg.cc/7PMyG747/object-code.png)
+![Read](https://i.postimg.cc/QdDxHb7T/1.png)
+
+- Head Text End (HTE) Record 
+
+![Read](https://i.postimg.cc/tgMjttsD/2.png)
 
 
